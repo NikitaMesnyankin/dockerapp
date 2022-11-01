@@ -1,0 +1,31 @@
+version: '3.0'
+services:
+  app:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - "4040:4040"
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+  postgres:
+    image: postgres:15.0-alpine3.16
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=root
+    ports:
+      - "5432:5438"
+    volumes:
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+  pgadmin-compose:
+    image: dpage/pgadmin4
+    ports:
+      - "16543:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "abc@mail.com"
+      PGADMIN_DEFAULT_PASSWORD: "123456"
+    depends_on:
+      - postgres
