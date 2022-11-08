@@ -1,34 +1,15 @@
-const { Client } = require("pg");
 const express = require("express");
+const phones = require("./routes/phones");
+const bodyParser = require("body-parser");
 const app = express();
 const port = 4040;
 
-const client = new Client({
-	password: "root",
-	user: "root",
-	host: "postgres",
+app.use(bodyParser.json());
+//app.use(express.static("public"));
+app.use("/phones", phones.phonesRouter);
+
+
+app.listen(port, () => {
+	console.log(`Example app listening at http://localhost:${port}`);
 });
 
-app.use(express.static("public"));
-
-app.get("/employees", async (req, res) => {
-	const results = await client
-		.query("SELECT * FROM information_schema.columns")
-		.then((payload) => {
-			return payload.rows;
-		})
-		.catch(() => {
-			throw new Error("Query failed");
-		});
-	res.setHeader("Content-Type", "application/json");
-	res.status(200);
-	res.send(JSON.stringify(results));
-});
-
-(async () => {
-	await client.connect();
-
-	app.listen(port, () => {
-		console.log(`Example app listening at http://localhost:${port}`);
-	});
-})();
