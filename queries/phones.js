@@ -1,4 +1,4 @@
-const { generateInsertString } = require("../utils/utils");
+const { generateInsertPair } = require("../utils/utils");
 const Pool = require("pg").Pool;
 const pool = new Pool({
 	user: "root",
@@ -28,10 +28,9 @@ const getPhoneById = (request, response) => {
 };
 
 const createPhone = (request, response) => {
-	console.log(request.body);
-	console.log(`INSERT INTO phones values ${generateInsertString(Object.values(request.body))} returning *`);
+	console.log(`INSERT INTO phones ${generateInsertPair(request.body)} returning *`);
 	//TODO: validate request body
-	pool.query(`INSERT INTO phones values ${generateInsertString(Object.values(request.body))} returning *`, (error, results) => {
+	pool.query(`INSERT INTO phones ${generateInsertPair(request.body)} returning *`, (error, results) => {
 		if (error) {
 			throw new Error(error.message);
 		}

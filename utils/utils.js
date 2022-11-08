@@ -1,13 +1,11 @@
-const generateInsertString = (args) => {
-	args = args.map((arg) => {
+const generateInsertPair = (args_obj) => {
+	return `(${Object.keys(args_obj).join(", ")}) VALUES (${Object.values(args_obj).map((arg) => {
 		if (typeof arg === "string") {
 			return `'${arg}'`;
 		} else {
 			return arg;
 		}
-	});
-	// console.log(`(${args.join(", ")})`);
-	return `(${args.join(", ")})`;
+	}).join(", ")})`;
 };
 
-module.exports = { generateInsertString };
+module.exports = { generateInsertPair };
