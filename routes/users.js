@@ -1,15 +1,17 @@
 const express = require("express");
-const points = require("../queries/users");
+const users = require("../queries/users");
 const usersRouter = express.Router();
 
 usersRouter.use((req, res, next) => {
-	console.log(`Time: ${Date.now()} | Request: ${req.body}`);
+	console.log(`Time: ${Date.now()} | Request: ${req.method} ${req.path} | Body: ${req.body}`);
 	next();
 });
 
-usersRouter.get("/", points.getPoints);
-usersRouter.get("/:id", points.getPointById);
-usersRouter.post("/", points.createPoint);
+usersRouter.get("/", users.getUsers);
+usersRouter.get("/:id", users.getUserById);
+usersRouter.post("/", users.createUser);
+usersRouter.patch("/:id", users.updateUser);
+usersRouter.delete("/:id", users.deleteUser);
 
 module.exports = {
 	usersRouter

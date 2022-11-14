@@ -8,4 +8,28 @@ const generateInsertPair = (args_obj) => {
 	}).join(", ")})`;
 };
 
-module.exports = { generateInsertPair };
+const generateUpdateString = (args_obj) => {
+	const updateChunks = [];
+	Object.keys(args_obj).map((arg) => {
+		updateChunks.push(`${arg} = ${typeof args_obj[arg] === "string"
+			? `'${args_obj[arg]}'`
+			: args_obj[arg]}`);
+	});
+	return updateChunks.join(", ");
+};
+
+const sendJsonData = (response, data, code) => {
+	response.status(code)
+		.setHeader("Content-Type", "application/json")
+		.json(data);
+};
+
+const sendError = (response, message, code) => {
+	response.status(code)
+		.setHeader("Content-Type", "application/json")
+		.json({
+			message: message
+		});
+};
+
+module.exports = { generateInsertPair, generateUpdateString, sendJsonData, sendError };

@@ -1,4 +1,4 @@
-const { generateInsertPair } = require("../utils/utils");
+const { generateInsertPair, generateUpdateString, sendJsonData, sendError } = require("../utils/utils");
 const Pool = require("pg").Pool;
 const pool = new Pool({
 	user: "root",
@@ -9,44 +9,80 @@ const pool = new Pool({
 });
 
 const getPoints = (request, response) => {
-	pool.query("SELECT * FROM points ORDER BY id ASC", (error, results) => {
+	pool.query("SELECT * FROM points ORDER BY id", (error, results) => {
 		if (error) {
-			throw new Error("Database query failed!");
+			sendError(response, error.message, 500);
+		} else {
+			sendJsonData(response, results.rows, 200);
 		}
-		response.status(200).setHeader("Content-Type", "application/json").json(results.rows);
 	});
 };
 
 const getPointById = (request, response) => {
 	const id = parseInt(request.params.id);
-	pool.query("SELECT * FROM points WHERE id = $1", [id], (error, results) => {
+	pool.query(`SELECT * FROM points WHERE id = ${id}`, (error, results) => {
 		if (error) {
-			throw new Error(error.message);
+			sendError(response, error.message, 500);
+		} else {
+			if (results.rows.length) {
+				sendJsonData(response, results.rows[0], 200);
+			} else {
+				sendError(response, `Requested point with id ${id} was not found!`, 404);
+			}
 		}
-		if (!results.rows) {
-			response.status(404)
-				.setHeader("Content-Type", "application/json")
-				.send(`Requested point with id ${id} was not found!`);
-		}
-		response.status(200)
-			.setHeader("Content-Type", "application/json")
-			.json(results.rows);
 	});
 };
 
 const createPoint = (request, response) => {
-	console.log(`INSERT INTO points ${generateInsertPair(request.body)} returning *`);
-	//TODO: validate request body
 	pool.query(`INSERT INTO points ${generateInsertPair(request.body)} returning *`, (error, results) => {
 		if (error) {
-			throw new Error(error.message);
+			sendError(response, error.message, 500);
+		} else {
+			if (!results.rows.length) {
+				sendError(response, "Database error occured!", 409);
+			} else {
+				sendJsonData(response, results.rows[0], 201);
+			}
 		}
-		response.status(201).setHeader("Content-Type", "application/json").send(results);
+	});
+};
+
+const updatePoint = (request, response) => {
+	const id = parseInt(request.params.id);
+	pool.query(
+		`UPDATE points SET ${generateUpdateString(request.body)} where id = ${id} returning *`, (error, results) => {
+			if (error) {
+				sendError(response, error.message, 500);
+			} else {
+				if (results.rows.length) {
+					sendJsonData(response, results.rows[0], 200);
+				} else {
+					sendError(response, `Requested point with id ${id} was not found!`, 404);
+				}
+			}
+		}
+	);
+};
+
+const deletePoint = (request, response) => {
+	const id = parseInt(request.params.id);
+	pool.query(`DELETE FROM points WHERE id = ${id} returning *`, (error, results) => {
+		if (error) {
+			sendError(response, error.message, 500);
+		} else {
+			if (results.rows.length) {
+				sendJsonData(response, null, 204);
+			} else {
+				sendError(response, `Requested point with id ${id} was not found!`, 404);
+			}
+		}
 	});
 };
 
 module.exports = {
 	getPoints,
 	getPointById,
-	createPoint
+	createPoint,
+	updatePoint,
+	deletePoint
 };
