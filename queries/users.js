@@ -17,6 +17,16 @@ const pool = new Pool({
 	port: 5432,
 });
 
+const getUserFromDB = async (params) => {
+	console.log(params);
+	try {
+		const queryResult = await pool.query(`SELECT * FROM users ${generateConditionClause(params)} ORDER BY id`);
+		return queryResult.rows;
+	} catch (error) {
+		return [];
+	}
+};
+
 const getUsers = (request, response) => {
 	pool.query(`SELECT * FROM users ${generateConditionClause(request.query)} ORDER BY id`, (error, results) => {
 		if (error) {
@@ -96,6 +106,7 @@ const deleteUser = (request, response) => {
 };
 
 module.exports = {
+	getUserFromDB,
 	getUsers,
 	getUserById,
 	createUser,
