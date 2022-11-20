@@ -1,4 +1,13 @@
-const { generateInsertPair, generateUpdateString, sendJsonData, sendError } = require("../utils/utils");
+const {
+	generateInsertPair,
+	generateUpdateString,
+	generateConditionClause,
+	sendJsonData,
+	sendError
+} = require("../utils/utils");
+
+const { userSchema } = require("../schemas/users");
+const bcrypt = require("bcryptjs");
 const Pool = require("pg").Pool;
 const pool = new Pool({
 	user: "root",
@@ -9,7 +18,7 @@ const pool = new Pool({
 });
 
 const getUsers = (request, response) => {
-	pool.query("SELECT * FROM users ORDER BY id", (error, results) => {
+	pool.query(`SELECT * FROM users ${generateConditionClause(request.query)} ORDER BY id`, (error, results) => {
 		if (error) {
 			sendError(response, error.message, 500);
 		} else {
@@ -33,18 +42,25 @@ const getUserById = (request, response) => {
 	});
 };
 
-const createUser = (request, response) => {
-	pool.query(`INSERT INTO users ${generateInsertPair(request.body)} returning *`, (error, results) => {
-		if (error) {
-			sendError(response, error.message, 500);
-		} else {
-			if (!results.rows.length) {
-				sendError(response, "Database error occured!", 409);
+const createUser = async (request, response) => {
+	try {
+		const value = await userSchema.validateAsync(request.body);
+		request.body.hash = bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10));
+		delete request.body.password;
+		pool.query(`INSERT INTO users ${generateInsertPair(request.body)} returning *`, (error, results) => {
+			if (error) {
+				sendError(response, error.message, 500);
 			} else {
-				sendJsonData(response, results.rows[0], 201);
+				if (!results.rows.length) {
+					sendError(response, "Database error occured!", 409);
+				} else {
+					sendJsonData(response, results.rows[0], 201);
+				}
 			}
-		}
-	});
+		});
+	} catch (err) {
+		sendError(response, err.message, 400);
+	}
 };
 
 const updateUser = (request, response) => {

@@ -3,9 +3,9 @@ const { stringSchema, numericSchema, isoDateSchema, getErrorSchema } = require("
 
 const userSchema = joi.object({
 	id: numericSchema,
+	email: stringSchema,
 	login: stringSchema,
-	password: stringSchema.optional(),
-	salt: stringSchema.optional(),
+	password: stringSchema,
 	surname: stringSchema,
 	name: stringSchema,
 	contact: stringSchema,
@@ -27,3 +27,5 @@ const pointSchema = joi.object({
 	building: stringSchema,
 	apartment: stringSchema
 }).unknown(false);
+
+module.exports = { userSchema, phoneSchema, pointSchema };
