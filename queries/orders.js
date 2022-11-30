@@ -79,10 +79,27 @@ const deleteOrder = (request, response) => {
 	});
 };
 
+const checkAvailability = (request, response, next) => {
+	const id = parseInt(request.body.phone_id);
+	pool.query(`SELECT * FROM phones where id = ${id}`, (error, results) => {
+		if (error) {
+			sendError(response, error.message, 500);
+		} else {
+			if (results.rows.length && results.rows[0].stock > request.body.quantity) {
+				next();
+			} else {
+				sendError(response,"Requested phone was not found or it's quantity is not enough!", 400);
+			}
+		}
+	});
+};
+
+
 module.exports = {
 	getOrders,
 	getOrderById,
 	createOrder,
 	updateOrder,
-	deleteOrder
+	deleteOrder,
+	checkAvailability
 };

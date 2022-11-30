@@ -18,7 +18,6 @@ const pool = new Pool({
 });
 
 const getUserFromDB = async (params) => {
-	console.log(params);
 	try {
 		const queryResult = await pool.query(`SELECT * FROM users ${generateConditionClause(params)} ORDER BY id`);
 		return queryResult.rows;
@@ -28,7 +27,7 @@ const getUserFromDB = async (params) => {
 };
 
 const getUsers = (request, response) => {
-	pool.query(`SELECT * FROM users ${generateConditionClause(request.query)} ORDER BY id`, (error, results) => {
+	pool.query("SELECT * FROM users ORDER BY id", (error, results) => {
 		if (error) {
 			sendError(response, error.message, 500);
 		} else {
@@ -55,8 +54,7 @@ const getUserById = (request, response) => {
 const createUser = async (request, response) => {
 	try {
 		const value = await userSchema.validateAsync(request.body);
-		request.body.hash = bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10));
-		delete request.body.password;
+		request.body.password = bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10));
 		pool.query(`INSERT INTO users ${generateInsertPair(request.body)} returning *`, (error, results) => {
 			if (error) {
 				sendError(response, error.message, 500);
