@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 });
 
 app.use(async (req, res, next) => {
-	req.dbResult = await getUserFromDB({ "login": req.query["login"] });
+	req.dbResult = await getUserFromDB({ "login": req.headers["login"] });
 	next();
 });
 
