@@ -3,6 +3,7 @@ const phones = require("./routes/phones");
 const points = require("./routes/points");
 const users = require("./routes/users");
 const orders = require("./routes/orders");
+const business = require("./routes/business");
 const bodyParser = require("body-parser");
 const { getUserFromDB } = require("./queries/users");
 
@@ -25,6 +26,7 @@ app.use("/phones", phones.phonesRouter);
 app.use("/users", users.usersRouter);
 app.use("/points", points.pointsRouter);
 app.use("/orders", orders.ordersRouter);
+app.use("/report", business.businessRouter);
 
 app.listen(port, () => {
 	console.log(`Example app listening at http://localhost:${port}`);

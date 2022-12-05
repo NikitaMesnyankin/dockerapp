@@ -42,13 +42,14 @@ create table orders (
     modified_at timestamptz default now()
 );
 
+create language plpython3u;
+
 create or replace function get_random_integer_between(low integer, high bigint)
-    returns int as
+  returns int as
 $$
-begin
-    return floor(random() * (high - low + 1) + low);
-end;
-$$ language 'plpgsql' strict;
+  import random;
+  return random.randint(low, high);
+$$ language plpython3u;
 
 create or replace function proceed_order() returns trigger
     language plpgsql
@@ -97,6 +98,20 @@ create trigger update_order_info
     on orders
     for each row
 execute procedure proceed_order();
+
+create unique index concurrently on public.phones (lower(model), lower(brand));
+
+create index concurrently on public.points (lower(city), lower(street), lower(building));
+
+create unique index concurrently on public.users (lower(email));
+create unique index concurrently on public.users (lower(login));
+create index concurrently on public.users (lower(surname), lower(name));
+
+create index concurrently on public.orders (user_id, phone_id, quantity, point_id);
+
+create or replace view phones_sales_report as
+	select p.brand, p.model, sum(quantity) over (partition by p.model) from
+		phones as p join orders as o on p.id = o.phone_id order by 1, 2, 3 desc;
 
 INSERT INTO points (city, street, building, apartment) VALUES ('Moscow', 'Moscow', '1', '1');
 
